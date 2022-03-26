@@ -264,7 +264,7 @@ def main():
     pygame.mixer.music.set_volume(0.1)
     pygame.mixer.music.play(-1)
 
-    player = Player(300, 630)
+    player = Player(WIDTH/2, HEIGHT/2)
 
     clock = pygame.time.Clock()
 
@@ -356,7 +356,7 @@ def main():
                 if booster.type == "hp":
                     player.health = 100
                 elif booster.type == "lz":
-                    player.COOLDOWN = player.COOLDOWN / 2
+                    player.COOLDOWN = player.COOLDOWN/2
                     booster_effect = 300
                 boosters.remove(booster)
                 farm_s.play()
@@ -370,6 +370,7 @@ def main():
             booster_effect -= 1
         else:
             player.COOLDOWN = 30
+
 
         player.move_lasers(-laser_vel, enemies)
 
@@ -400,6 +401,7 @@ def starting_titles():
     main_text15 = title_main_font.render("Сможет ли принцесcа Ксю", 1, (255, 232, 31))
     main_text16 = title_main_font.render("с её немногочисленным войском", 1, (255, 232, 31))
     main_text17 = title_main_font.render("пройти и это испытание?", 1, (255, 232, 31))
+
 
     WIN.blit(title_text, (WIDTH / 2 - title_text.get_width() / 2, 1000))
     WIN.blit(main_text1, (WIDTH / 2 - main_text1.get_width() / 2, 1000 + title_text.get_height() + 20))
@@ -436,8 +438,7 @@ def starting_titles():
     WIN.blit(main_text17, (WIDTH / 2 - main_text17.get_width() / 2, 1000 + title_text.get_height() + 20
                            + main_text1.get_height() * 16))
 
-    titles_length = 1200
-    for i in range(titles_length):
+    for i in range(1200):
         WIN.blit(BG, (0, 0))
         WIN.blit(title_text, (WIDTH / 2 - title_text.get_width() / 2, 1000 - 2 * i))
         WIN.blit(main_text1, (WIDTH / 2 - main_text1.get_width() / 2, 1000 + title_text.get_height() + 20 - 2 * i))
@@ -496,6 +497,9 @@ def main_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                starting_titles()
+                main()
     pygame.quit()
 
 
