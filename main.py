@@ -6,7 +6,7 @@ pygame.font.init()
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
 
-WIDTH, HEIGHT = 1000, 1000
+WIDTH, HEIGHT = 1000, 600
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Space Shooter Tutorial")
 
@@ -118,7 +118,7 @@ class Ship:
             laser = Laser(self.x, self.y, self.laser_img)
             laser_s.play()
             self.lasers.append(laser)
-            self.cool_down_counter = 1
+            self.cool_down_counter = 0.5 #кулдаун выстрелов поменять на 1
 
     def get_width(self):
         return self.ship_img.get_width()
@@ -235,7 +235,7 @@ def main():
     pygame.mixer.music.set_volume(0.1)
     pygame.mixer.music.play(-1)
 
-    player = Player(300, 630)
+    player = Player(WIDTH/2, HEIGHT/2)
 
     clock = pygame.time.Clock()
 
@@ -459,7 +459,7 @@ def main_menu():
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                starting_titles()
+                # starting_titles()
                 main()
     pygame.quit()
 
