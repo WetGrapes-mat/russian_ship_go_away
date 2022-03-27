@@ -47,9 +47,9 @@ LEADERBOARD_BUTTON_img = pygame.image.load(os.path.join("assets", "leaderboard_m
 MAIN_MENU_BUTTON_img = pygame.image.load(os.path.join("assets", "start_menu.png")).convert_alpha()
 
 # create button instances
-START_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT/2 - 200, START_BUTTON_img, 1)
-ABOUT_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT/2 - 100, ABOUT_BUTTON_img, 1)
-LEADERBOARD_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT/2, LEADERBOARD_BUTTON_img, 1)
+START_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 200, START_BUTTON_img, 1)
+ABOUT_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 100, ABOUT_BUTTON_img, 1)
+LEADERBOARD_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2, LEADERBOARD_BUTTON_img, 1)
 MAIN_MENU_BUTTON = button.Button(100, 200, MAIN_MENU_BUTTON_img, 1)
 
 exploasion_list = []
@@ -181,30 +181,39 @@ class Player(Ship):
         pygame.draw.rect(window, (255, 0, 0),
                          (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width(), 10))
         pygame.draw.rect(window, (0, 255, 0), (
-        self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width() * (self.health / self.max_health),
-        10))
+            self.x, self.y + self.ship_img.get_height() + 10,
+            self.ship_img.get_width() * (self.health / self.max_health),
+            10))
 
 
 class Enemy(Ship):
     COLOR_MAP = {
-        "red": (RED_SPACE_SHIP_S, RED_LASER),
-        "green": (GREEN_SPACE_SHIP_S, GREEN_LASER),
-        "blue": (BLUE_SPACE_SHIP_S, BLUE_LASER)
+        "red_s": (RED_SPACE_SHIP_S, RED_LASER, 1, 30, 4, 2),
+        "green_s": (GREEN_SPACE_SHIP_S, GREEN_LASER, 1, 30, 3, 2),
+        "blue_s": (BLUE_SPACE_SHIP_S, BLUE_LASER, 1, 60, 2, 1),
+        "red_b": (RED_SPACE_SHIP_S, RED_LASER, 2, 30, 4, 1),
+        "green_b": (GREEN_SPACE_SHIP_S, GREEN_LASER, 2, 30, 3, 2),
+        "blue_m": (BLUE_SPACE_SHIP_S, BLUE_LASER, 1, 50, 2, 2),
+        "blue_b": (BLUE_SPACE_SHIP_S, BLUE_LASER, 1, 40, 2, 1)
     }
 
-    def __init__(self, x, y, color, health=100):
-        super().__init__(x, y, health)
-        self.ship_img, self.laser_img = self.COLOR_MAP[color]
+    def __init__(self, color, health=100):
+        super().__init__(0, 0, health)
+        self.ship_img, self.laser_img, self.hp, self.CD, self.chance, self.velocity = self.COLOR_MAP[color]
         self.mask = pygame.mask.from_surface(self.ship_img)
 
-    def move(self, vel):
-        self.y += vel
+    def move(self):
+        self.y += self.velocity
 
     def shoot(self):
         if self.cool_down_counter == 0:
             laser = Laser(self.x - 20, self.y, self.laser_img)
             self.lasers.append(laser)
             self.cool_down_counter = 1
+
+    def set_starting_position(self, x, y):
+        self.y = y
+        self.x = x
 
 
 def collide(obj1, obj2):
@@ -220,8 +229,9 @@ def play_exploasion_sound():
 
 class Booster:
     COLOR_MAP = {
-        "hp": HEART_BOOSTER,
-        "lz": LAZER_BOOSTER
+        "hp": HEALTH_BOOSTER,
+        "lz": LAZER_BOOSTER,
+        "lv": HEART_BOOSTER
     }
 
     def __init__(self, x, y, type):
@@ -242,29 +252,102 @@ class Booster:
     def get_height(self):
         return self.booster_img.get_height()
 
+class Game:
+
+    def __init__(self):
+        self.FPS = 60
+        self.level = 0
+        self.lives = 5
+        self.ENEMY_MAP = {}
+        self.CURR_ENEMIES = []
+        self.CURR_BOOSTERS = []
+        self.booster_effect = 0
+        self.player_vel = 5
+        self.lazer_vel = 5
+
+
+    def Loop_actions(self, player):
+        self.Level_check()
+        self.Random_booster()
+        self.Enemy_behavior(player)
+        self.Boosters_behavior(player)
+
+
+    def Draw_objects(self, window):
+        for enemy in self.CURR_ENEMIES:
+            enemy.draw(window)
+        for booster in self.CURR_BOOSTERS:
+            booster.draw(WIN)
+
+
+    def Level_check(self):
+        if len(self.CURR_ENEMIES) == 0:
+            self.level += 1
+            #self.CURR_ENEMIES = self.ENEMY_MAP[self.level]
+            #for enemy in self.CURR_ENEMIES:
+            #    enemy.set_starting_position(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100))
+            for i in range((self.level+1)*5):
+                enemy = Enemy(random.choice(["red_s", "blue_s", "green_s"]))
+                enemy.set_starting_position(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100))
+                self.CURR_ENEMIES.append(enemy)
+
+    def Random_booster(self):
+        if random.randrange(0, 7 * 60) == 1:
+            booster = Booster(random.randrange(50, WIDTH - 100), random.randrange(100, HEIGHT - 100),
+                              random.choice(["hp", "lz", "lv"]))
+            self.CURR_BOOSTERS.append(booster)
+
+    def Enemy_behavior(self, player):
+        for enemy in self.CURR_ENEMIES[:]:
+            enemy.move()
+            enemy.move_lasers(self.lazer_vel, player)
+
+            if random.randrange(0, 5 * 60) == 1:
+                enemy.shoot()
+
+            if collide(enemy, player):
+                player.health -= 10
+                self.CURR_ENEMIES.remove(enemy)
+                play_exploasion_sound()
+            elif enemy.y + enemy.get_height() > HEIGHT:
+                self.lives -= 1
+                self.CURR_ENEMIES.remove(enemy)
+
+    def Boosters_behavior(self, player):
+        for booster in self.CURR_BOOSTERS:
+            if collide(booster, player):
+                if booster.type == "hp":
+                    player.health = 100
+                elif booster.type == "lz":
+                    player.COOLDOWN = player.COOLDOWN / 2
+                    self.booster_effect = 500
+                elif booster.type == "lv":
+                    self.lives += 1
+                self.CURR_BOOSTERS.remove(booster)
+                farm_s.play()
+
+            booster.last_life -= 1
+
+            if booster.last_life <= 0:
+                self.CURR_BOOSTERS.remove(booster)
+
+        if self.booster_effect > 0:
+            self.booster_effect -= 1
+        else:
+            player.COOLDOWN = 30
+
 
 def main():
+    game = Game()
     run = True
-    FPS = 60
-    level = 0
-    lives = 5
     main_font = pygame.font.SysFont("comicsans", 50)
     lost_font = pygame.font.SysFont("comicsans", 60)
-
-    enemies = []
-    boosters = []
-    wave_length = 5
-    enemy_vel = 1
-    booster_effect = 0
-
-    player_vel = 5
-    laser_vel = 5
 
     pygame.mixer.music.load("sounds/main.mp3")
     pygame.mixer.music.set_volume(0.1)
     pygame.mixer.music.play(-1)
 
-    player = Player(WIDTH/2, HEIGHT/2)
+    player = Player(WIDTH / 2, HEIGHT / 2)
 
     clock = pygame.time.Clock()
 
@@ -274,16 +357,13 @@ def main():
     def redraw_window():
         WIN.blit(BG, (0, 0))
         # draw text
-        lives_label = main_font.render(f"Lives: {lives}", 1, (255, 255, 255))
-        level_label = main_font.render(f"Level: {level}", 1, (255, 255, 255))
+        lives_label = main_font.render(f"Lives: {game.lives}", 1, (255, 255, 255))
+        level_label = main_font.render(f"Level: {game.level}", 1, (255, 255, 255))
 
         WIN.blit(lives_label, (10, 10))
         WIN.blit(level_label, (WIDTH - level_label.get_width() - 10, 10))
 
-        for enemy in enemies:
-            enemy.draw(WIN)
-        for booster in boosters:
-            booster.draw(WIN)
+        game.Draw_objects(WIN)
 
         player.draw(WIN)
 
@@ -294,85 +374,38 @@ def main():
         pygame.display.update()
 
     while run:
-        clock.tick(FPS)
+        clock.tick(game.FPS)
         redraw_window()
 
-        if lives <= 0 or player.health <= 0:
+        if game.lives <= 0 or player.health <= 0:
             lost = True
             lost_count += 1
 
         if lost:
-            if lost_count > FPS * 3:
+            if lost_count > game.FPS * 3:
                 run = False
             else:
                 continue
-
-        if len(enemies) == 0:
-            level += 1
-            wave_length += 5
-            for i in range(wave_length):
-                enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
-                              random.choice(["red", "blue", "green"]))
-                enemies.append(enemy)
-
-        if random.randrange(0, 10 * 60) == 1:
-            booster = Booster(random.randrange(50, WIDTH - 100), random.randrange(100, HEIGHT - 100),
-                              random.choice(["hp", "lz"]))
-            boosters.append(booster)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quit()
 
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_a] and player.x - player_vel > 0:  # left
-            player.x -= player_vel
-        if keys[pygame.K_d] and player.x + player_vel + player.get_width() < WIDTH:  # right
-            player.x += player_vel
-        if keys[pygame.K_w] and player.y - player_vel > 0:  # up
-            player.y -= player_vel
-        if keys[pygame.K_s] and player.y + player_vel + player.get_height() + 15 < HEIGHT:  # down
-            player.y += player_vel
+        if keys[pygame.K_a] and player.x - game.player_vel > 0:  # left
+            player.x -= game.player_vel
+        if keys[pygame.K_d] and player.x + game.player_vel + player.get_width() < WIDTH:  # right
+            player.x += game.player_vel
+        if keys[pygame.K_w] and player.y - game.player_vel > 0:  # up
+            player.y -= game.player_vel
+        if keys[pygame.K_s] and player.y + game.player_vel + player.get_height() + 15 < HEIGHT:  # down
+            player.y += game.player_vel
         if keys[pygame.K_SPACE]:
             player.shoot()
 
-        for enemy in enemies[:]:
-            enemy.move(enemy_vel)
-            enemy.move_lasers(laser_vel, player)
+        game.Loop_actions(player)
 
-            if random.randrange(0, 5 * 60) == 1:
-                enemy.shoot()
-
-            if collide(enemy, player):
-                player.health -= 10
-                enemies.remove(enemy)
-                play_exploasion_sound()
-            elif enemy.y + enemy.get_height() > HEIGHT:
-                lives -= 1
-                enemies.remove(enemy)
-
-        for booster in boosters:
-            if collide(booster, player):
-                if booster.type == "hp":
-                    player.health = 100
-                elif booster.type == "lz":
-                    player.COOLDOWN = player.COOLDOWN/2
-                    booster_effect = 300
-                boosters.remove(booster)
-                farm_s.play()
-
-            booster.last_life -= 1
-
-            if booster.last_life <= 0:
-                boosters.remove(booster)
-
-        if booster_effect > 0:
-            booster_effect -= 1
-        else:
-            player.COOLDOWN = 30
-
-
-        player.move_lasers(-laser_vel, enemies)
+        player.move_lasers(-game.lazer_vel, game.CURR_ENEMIES)
 
 
 def starting_titles():
@@ -401,7 +434,6 @@ def starting_titles():
     main_text15 = title_main_font.render("Сможет ли принцесcа Ксю", 1, (255, 232, 31))
     main_text16 = title_main_font.render("с её немногочисленным войском", 1, (255, 232, 31))
     main_text17 = title_main_font.render("пройти и это испытание?", 1, (255, 232, 31))
-
 
     WIN.blit(title_text, (WIDTH / 2 - title_text.get_width() / 2, 1000))
     WIN.blit(main_text1, (WIDTH / 2 - main_text1.get_width() / 2, 1000 + title_text.get_height() + 20))
@@ -498,7 +530,7 @@ def main_menu():
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                starting_titles()
+                #starting_titles()
                 main()
     pygame.quit()
 
