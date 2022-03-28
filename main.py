@@ -158,8 +158,10 @@ class Player(Ship):
             else:
                 for obj in objs:
                     if laser.collision(obj):
-                        objs.remove(obj)
-                        play_exploasion_sound()
+                        obj.got_shoot()
+                        if obj.get_hp() == 0:
+                            objs.remove(obj)
+                            play_exploasion_sound()
                         if laser in self.lasers:
                             self.lasers.remove(laser)
 
@@ -179,12 +181,12 @@ class Player(Ship):
 class Enemy(Ship):
     COLOR_MAP = {
         "red_s": (RED_SPACE_SHIP_S, RED_LASER, 1, 30, 4, 2),
-        "green_s": (GREEN_SPACE_SHIP_S, GREEN_LASER, 1, 30, 3, 2),
-        "blue_s": (BLUE_SPACE_SHIP_S, BLUE_LASER, 1, 60, 2, 1),
+        "green_s": (GREEN_SPACE_SHIP_S, GREEN_LASER, 1, 30, 3, 1),
+        "blue_s": (BLUE_SPACE_SHIP_S, BLUE_LASER, 1, 60, 2, 2),
         "red_b": (RED_SPACE_SHIP_L, RED_LASER, 2, 30, 4, 1),
-        "green_b": (GREEN_SPACE_SHIP_L, GREEN_LASER, 2, 30, 3, 2),
+        "green_b": (GREEN_SPACE_SHIP_L, GREEN_LASER, 2, 30, 3, 1),
         "blue_m": (BLUE_SPACE_SHIP_M, BLUE_LASER, 1, 50, 2, 2),
-        "blue_b": (BLUE_SPACE_SHIP_L, BLUE_LASER, 1, 40, 2, 1)
+        "blue_b": (BLUE_SPACE_SHIP_L, BLUE_LASER, 1, 40, 2, 2)
     }
 
     def __init__(self, color, health=100):
@@ -220,6 +222,12 @@ class Enemy(Ship):
     def set_starting_position(self, x, y):
         self.y = y
         self.x = x
+
+    def got_shoot(self):
+        self.hp -= 1
+
+    def get_hp(self):
+        return self.hp
 
 
 def collide(obj1, obj2):
