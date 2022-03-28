@@ -339,7 +339,7 @@ class Game:
     def __init__(self):
         self.FPS = 60
         self.boss_colider = 0
-        self.level = 14
+        self.level = 0
         self.lives = 5
         self.ENEMY_MAP = {1: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s")],
                           2: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
