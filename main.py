@@ -199,6 +199,7 @@ class Enemy(Ship):
     def __init__(self, color, health=100):
         super().__init__(0, 0, health)
         self.color = color
+        self.lazer_vel = 1
         self.ship_img, self.laser_img, self.hp, self.CD, self.chance, self.velocity = self.COLOR_MAP[color]
         self.mask = pygame.mask.from_surface(self.ship_img)
         self.set_starting_position(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100))
@@ -206,10 +207,10 @@ class Enemy(Ship):
     def move(self):
         self.y += self.velocity
 
-    def move_lasers(self, vel, obj):
+    def move_lasers(self, obj):
         self.cooldown()
         for laser in self.lasers:
-            laser.move(vel)
+            laser.move(self.lazer_vel)
             if laser.off_screen(HEIGHT):
                 self.lasers.remove(laser)
             elif laser.collision(obj):
@@ -250,6 +251,7 @@ class Boss(Enemy):
     
     def __init__(self, color):
         super().__init__(color)
+        self.lazer_vel = 2
         self.ship_img, self.laser_img, self.hp, self.CD, self.chance, self.velocity = self.COLOR_MAP[color]
         self.mask = pygame.mask.from_surface(self.ship_img)
         self.bullets = self.BOSS_MAP[color]
@@ -257,7 +259,7 @@ class Boss(Enemy):
 
     def move(self):
         if self.y < HEIGHT / 2 - self.ship_img.get_height() / 2:
-            self.y += self.velocity
+            self.y += self.velocity*2
         else:
             if self.first_line > 0:
                 self.x -= self.velocity
@@ -502,7 +504,7 @@ class Game:
     def Enemy_behavior(self, player):
         for enemy in self.CURR_ENEMIES[:]:
             enemy.move()
-            enemy.move_lasers(self.lazer_vel, player)
+            enemy.move_lasers(player)
 
             if random.randrange(0, enemy.chance * 60) == 1:
                 enemy.shoot()
