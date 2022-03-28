@@ -2,6 +2,7 @@ import pygame
 import os
 import time
 import random
+
 import button
 
 pygame.font.init()
@@ -83,6 +84,10 @@ appear_s.set_volume(0.1)
 # Background
 BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background-black.png")), (WIDTH, HEIGHT))
 
+def collide(obj1, obj2):
+    offset_x = obj2.x - obj1.x
+    offset_y = obj2.y - obj1.y
+    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) != None
 
 class Laser:
     def __init__(self, x, y, img):
@@ -102,7 +107,6 @@ class Laser:
 
     def collision(self, obj):
         return collide(self, obj)
-
 
 class Ship:
     def __init__(self, x, y, health=100):
@@ -186,13 +190,18 @@ class Enemy(Ship):
         "red_b": (RED_SPACE_SHIP_L, RED_LASER, 2, 30, 4, 1),
         "green_b": (GREEN_SPACE_SHIP_L, GREEN_LASER, 2, 30, 3, 1),
         "blue_m": (BLUE_SPACE_SHIP_M, BLUE_LASER, 1, 50, 2, 2),
-        "blue_b": (BLUE_SPACE_SHIP_L, BLUE_LASER, 1, 40, 2, 2)
+        "blue_b": (BLUE_SPACE_SHIP_L, BLUE_LASER, 1, 40, 2, 2),
+        "boss_s": (BIG_SHIP_S, RED_LASER, 5, 20, 1, 1),
+        "boss_m": (BIG_SHIP_M, RED_LASER, 10, 20, 1, 1),
+        "boss_l": (BIG_SHIP_L, RED_LASER, 15, 20, 1, 1)
     }
 
     def __init__(self, color, health=100):
         super().__init__(0, 0, health)
+        self.color = color
         self.ship_img, self.laser_img, self.hp, self.CD, self.chance, self.velocity = self.COLOR_MAP[color]
         self.mask = pygame.mask.from_surface(self.ship_img)
+        self.set_starting_position(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100))
 
     def move(self):
         self.y += self.velocity
@@ -230,10 +239,69 @@ class Enemy(Ship):
         return self.hp
 
 
-def collide(obj1, obj2):
-    offset_x = obj2.x - obj1.x
-    offset_y = obj2.y - obj1.y
-    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) != None
+class Boss(Enemy):
+    BOSS_MAP = {
+        "boss_s": 2,
+        "boss_m": 4,
+        "boss_l": 6
+    }
+    first_line = 200
+    counter = -200
+    
+    def __init__(self, color):
+        super().__init__(color)
+        self.ship_img, self.laser_img, self.hp, self.CD, self.chance, self.velocity = self.COLOR_MAP[color]
+        self.mask = pygame.mask.from_surface(self.ship_img)
+        self.bullets = self.BOSS_MAP[color]
+        self.set_starting_position(WIDTH / 2 - self.ship_img.get_width() / 2, -200)
+
+    def move(self):
+        if self.y < HEIGHT / 2 - self.ship_img.get_height() / 2:
+            self.y += self.velocity
+        else:
+            if self.first_line > 0:
+                self.x -= self.velocity
+                self.first_line -= 1
+            else:
+                if self.counter < 200:
+                    self.x += self.velocity
+                    self.counter += 1
+                elif self.counter < 600:
+                    self.x -= self.velocity
+                    self.counter += 1
+                    if self.counter == 600:
+                        self.counter = -200
+
+    def shoot(self):
+        if self.cool_down_counter == 0:
+            if self.bullets == 2:
+                laser_1 = Laser(self.x + 10, self.y + 90, self.laser_img)
+                laser_2 = Laser(self.x + 90, self.y + 90, self.laser_img)
+                self.lasers.append(laser_1)
+                self.lasers.append(laser_2)
+            if self.bullets == 4:
+                laser_1 = Laser(self.x + 10, self.y + 90, self.laser_img)
+                laser_2 = Laser(self.x + 90, self.y + 90, self.laser_img)
+                laser_3 = Laser(self.x, self.y + 70, self.laser_img)
+                laser_4 = Laser(self.x + 100, self.y + 70, self.laser_img)
+                self.lasers.append(laser_1)
+                self.lasers.append(laser_2)
+                self.lasers.append(laser_3)
+                self.lasers.append(laser_4)
+            if self.bullets == 6:
+                laser_1 = Laser(self.x + 10, self.y + 90, self.laser_img)
+                laser_2 = Laser(self.x + 90, self.y + 90, self.laser_img)
+                laser_3 = Laser(self.x, self.y + 70, self.laser_img)
+                laser_4 = Laser(self.x + 100, self.y + 70, self.laser_img)
+                laser_5 = Laser(self.x - 20, self.y + 60, GREEN_LASER)
+                laser_6 = Laser(self.x + 120, self.y + 60, GREEN_LASER)
+                self.lasers.append(laser_1)
+                self.lasers.append(laser_2)
+                self.lasers.append(laser_3)
+                self.lasers.append(laser_4)
+                self.lasers.append(laser_5)
+                self.lasers.append(laser_6)
+            self.cool_down_counter = 1
 
 
 def play_exploasion_sound():
@@ -270,7 +338,8 @@ class Game:
 
     def __init__(self):
         self.FPS = 60
-        self.level = 0
+        self.boss_colider = 0
+        self.level = 14
         self.lives = 5
         self.ENEMY_MAP = {1: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s")],
                           2: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
@@ -280,7 +349,7 @@ class Game:
                           4: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s")],
-                          5: [],
+                          5: [Boss("boss_s")],
                           6: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
@@ -304,7 +373,7 @@ class Game:
                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m")],
-                          10: [],
+                          10: [Boss("boss_m")],
                           11: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
                                Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
                                Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
@@ -341,7 +410,7 @@ class Game:
                                Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
                                Enemy("blue_b"), Enemy("blue_b"), Enemy("blue_b"),
                                Enemy("red_b"), Enemy("green_b"), Enemy("blue_b"), Enemy("blue_m")],
-                          15: [],
+                          15: [Boss("boss_l")],
                           16: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
                                Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
                                Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
@@ -420,8 +489,9 @@ class Game:
                     self.CURR_ENEMIES.append(Enemy("red_b"))
                     self.CURR_ENEMIES.append(Enemy("blue_b"))
                     self.CURR_ENEMIES.append(Enemy("green_b"))
-            for enemy in self.CURR_ENEMIES:
-                enemy.set_starting_position(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100))
+            if self.level % 5 != 0:
+                for enemy in self.CURR_ENEMIES:
+                    enemy.set_starting_position(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100))
 
     def Random_booster(self):
         if random.randrange(0, 6 * 60) == 1:
@@ -438,9 +508,14 @@ class Game:
                 enemy.shoot()
 
             if collide(enemy, player):
-                player.health -= 10
-                self.CURR_ENEMIES.remove(enemy)
-                play_exploasion_sound()
+                if (enemy.color != "boss_s") and (enemy.color != "boss_m") and (enemy.color != "boss_l"):
+                    player.health -= 10
+                    self.CURR_ENEMIES.remove(enemy)
+                    play_exploasion_sound()
+                else:
+                    if self.boss_colider == 0:
+                        player.health -= 10
+                        self.boss_colider = 120
             elif enemy.y + enemy.get_height() > HEIGHT:
                 self.lives -= 1
                 self.CURR_ENEMIES.remove(enemy)
@@ -467,6 +542,9 @@ class Game:
             self.booster_effect -= 1
         else:
             player.COOLDOWN = 30
+
+        if self.boss_colider > 0:
+            self.boss_colider -= 1
 
 
 def main():
