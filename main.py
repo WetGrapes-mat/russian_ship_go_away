@@ -199,7 +199,7 @@ class Enemy(Ship):
     def __init__(self, color, health=100):
         super().__init__(0, 0, health)
         self.color = color
-        self.lazer_vel = 1
+        self.lazer_vel = 5
         self.ship_img, self.laser_img, self.hp, self.CD, self.chance, self.velocity = self.COLOR_MAP[color]
         self.mask = pygame.mask.from_surface(self.ship_img)
         self.set_starting_position(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100))
@@ -251,7 +251,7 @@ class Boss(Enemy):
     
     def __init__(self, color):
         super().__init__(color)
-        self.lazer_vel = 2
+        self.lazer_vel = 8
         self.ship_img, self.laser_img, self.hp, self.CD, self.chance, self.velocity = self.COLOR_MAP[color]
         self.mask = pygame.mask.from_surface(self.ship_img)
         self.bullets = self.BOSS_MAP[color]
