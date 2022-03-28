@@ -8,9 +8,9 @@ pygame.font.init()
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
 
-WIDTH, HEIGHT = 1000, 1000
+WIDTH, HEIGHT = 1000, 700
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Space Shooter Tutorial")
+pygame.display.set_caption("Space Invaders")
 
 # Load images
 RED_SPACE_SHIP_S = pygame.image.load(os.path.join("assets", "pixel_ship_red_small.png"))
@@ -24,7 +24,7 @@ BIG_SHIP_S = pygame.image.load(os.path.join("assets", "pixel_boss_ship_small.png
 BIG_SHIP_M = pygame.image.load(os.path.join("assets", "pixel_boss_ship_middle.png"))
 BIG_SHIP_L = pygame.image.load(os.path.join("assets", "pixel_boss_ship_big.png"))
 
-# Player player
+# Player's ship
 YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("assets", "pixel_ship_yellow.png"))
 
 # Lasers
@@ -47,9 +47,9 @@ LEADERBOARD_BUTTON_img = pygame.image.load(os.path.join("assets", "leaderboard_m
 MAIN_MENU_BUTTON_img = pygame.image.load(os.path.join("assets", "start_menu.png")).convert_alpha()
 
 # create button instances
-START_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT/2 - 200, START_BUTTON_img, 1)
-ABOUT_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT/2 - 100, ABOUT_BUTTON_img, 1)
-LEADERBOARD_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT/2, LEADERBOARD_BUTTON_img, 1)
+START_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 200, START_BUTTON_img, 1)
+ABOUT_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 100, ABOUT_BUTTON_img, 1)
+LEADERBOARD_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2, LEADERBOARD_BUTTON_img, 1)
 MAIN_MENU_BUTTON = button.Button(100, 200, MAIN_MENU_BUTTON_img, 1)
 
 exploasion_list = []
@@ -152,12 +152,33 @@ class Ship:
 
 
 class Player(Ship):
-    def __init__(self, x, y, health=100):
+    def __init__(self, x, y, name, health=100):
         super().__init__(x, y, health)
         self.ship_img = YELLOW_SPACE_SHIP
         self.laser_img = YELLOW_LASER
         self.mask = pygame.mask.from_surface(self.ship_img)
         self.max_health = health
+        self.name = name
+
+    def input_name(self, window):
+        text = ''
+        input_font = pygame.font.SysFont('arial', 30)
+        input_text = input_font.render(text, True, (255, 255, 255))
+        press_font = pygame.font.SysFont('arial', 50)
+        press_text = press_font.render('Нажмите любую клавишу...', True, (255, 255, 255))
+
+        window.blit(press_text, (WIDTH / 2 - press_text.get_width() / 2, HEIGHT / 2 - press_text.get_height() / 2))
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    self.name = text
+                elif event.key == pygame.K_BACKSPACE:
+                    pass
+                else:
+                    text += event.unicode
+            window.blit(input_text, ((WIDTH / 2 - input_text.get_width() / 2, HEIGHT / 2 - press_text.get_height() / 2)))
+
+
 
     def move_lasers(self, vel, objs):
         self.cooldown()
@@ -181,8 +202,9 @@ class Player(Ship):
         pygame.draw.rect(window, (255, 0, 0),
                          (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width(), 10))
         pygame.draw.rect(window, (0, 255, 0), (
-        self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width() * (self.health / self.max_health),
-        10))
+            self.x, self.y + self.ship_img.get_height() + 10,
+            self.ship_img.get_width() * (self.health / self.max_health),
+            10))
 
 
 class Enemy(Ship):
@@ -210,7 +232,7 @@ class Enemy(Ship):
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
     offset_y = obj2.y - obj1.y
-    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) != None
+    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) is not None
 
 
 def play_exploasion_sound():
@@ -264,7 +286,7 @@ def main():
     pygame.mixer.music.set_volume(0.1)
     pygame.mixer.music.play(-1)
 
-    player = Player(WIDTH/2, HEIGHT/2)
+    player = Player(WIDTH / 2, HEIGHT / 2)
 
     clock = pygame.time.Clock()
 
@@ -356,7 +378,7 @@ def main():
                 if booster.type == "hp":
                     player.health = 100
                 elif booster.type == "lz":
-                    player.COOLDOWN = player.COOLDOWN/2
+                    player.COOLDOWN = player.COOLDOWN / 2
                     booster_effect = 300
                 boosters.remove(booster)
                 farm_s.play()
@@ -370,7 +392,6 @@ def main():
             booster_effect -= 1
         else:
             player.COOLDOWN = 30
-
 
         player.move_lasers(-laser_vel, enemies)
 
@@ -401,7 +422,6 @@ def starting_titles():
     main_text15 = title_main_font.render("Сможет ли принцесcа Ксю", 1, (255, 232, 31))
     main_text16 = title_main_font.render("с её немногочисленным войском", 1, (255, 232, 31))
     main_text17 = title_main_font.render("пройти и это испытание?", 1, (255, 232, 31))
-
 
     WIN.blit(title_text, (WIDTH / 2 - title_text.get_width() / 2, 1000))
     WIN.blit(main_text1, (WIDTH / 2 - main_text1.get_width() / 2, 1000 + title_text.get_height() + 20))
