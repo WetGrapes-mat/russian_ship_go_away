@@ -8,7 +8,7 @@ pygame.font.init()
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
 
-WIDTH, HEIGHT = 1000, 1000
+WIDTH, HEIGHT = 1000, 700
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Space Invaders")
 
