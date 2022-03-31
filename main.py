@@ -10,9 +10,9 @@ pygame.font.init()
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
 
-WIDTH, HEIGHT = 1000, 1000
+WIDTH, HEIGHT = 1000, 700
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Space Shooter Tutorial")
+pygame.display.set_caption("Space Invaders")
 
 # Load images
 RED_SPACE_SHIP_S = pygame.image.load(os.path.join("assets", "pixel_ship_red_small.png"))
@@ -106,7 +106,7 @@ BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
     offset_y = obj2.y - obj1.y
-    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) != None
+    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) is not None
 
 
 class Laser:
@@ -123,7 +123,7 @@ class Laser:
         self.y += vel
 
     def off_screen(self, height):
-        return not (self.y <= height and self.y >= 0)
+        return not (height >= self.y >= 0)
 
     def collision(self, obj):
         return collide(self, obj)
@@ -386,19 +386,19 @@ class Game:
                         temp_wave.append(Enemy(name))
                 self.ENEMY_MAP[int(k)] = temp_wave
 
-    def Loop_actions(self, player):
-        self.Level_check()
-        self.Random_booster()
-        self.Enemy_behavior(player)
-        self.Boosters_behavior(player)
+    def loop_actions(self, player):
+        self.level_check()
+        self.random_booster()
+        self.enemy_behavior(player)
+        self.boosters_behavior(player)
 
-    def Draw_objects(self, window):
+    def draw_objects(self, window):
         for enemy in self.CURR_ENEMIES:
             enemy.draw(window)
         for booster in self.CURR_BOOSTERS:
             booster.draw(WIN)
 
-    def Level_check(self):
+    def level_check(self):
         if len(self.CURR_ENEMIES) == 0:
             self.level += 1
             if self.level < 19:
@@ -417,13 +417,13 @@ class Game:
                 for enemy in self.CURR_ENEMIES:
                     enemy.set_starting_position(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100))
 
-    def Random_booster(self):
+    def random_booster(self):
         if random.randrange(0, 6 * 60) == 1:
             booster = Booster(random.randrange(50, WIDTH - 100), random.randrange(100, HEIGHT - 100),
                               random.choice(["hp", "lz", "lv"]))
             self.CURR_BOOSTERS.append(booster)
 
-    def Enemy_behavior(self, player):
+    def enemy_behavior(self, player):
         for enemy in self.CURR_ENEMIES[:]:
             enemy.move()
             enemy.move_lasers(player)
@@ -444,7 +444,7 @@ class Game:
                 self.lives -= 1
                 self.CURR_ENEMIES.remove(enemy)
 
-    def Boosters_behavior(self, player):
+    def boosters_behavior(self, player):
         for booster in self.CURR_BOOSTERS:
             if collide(booster, player):
                 if booster.type == "hp":
@@ -471,6 +471,72 @@ class Game:
             self.boss_colider -= 1
 
 
+class LeaderBoard:
+    __lead_dict = {}
+
+    def __init__(self):
+        self.get_lead_from_file()
+
+    def get_lead_from_file(self):  # ввод из файла
+        with open('leaderboard.json', 'r', encoding="utf-8") as file_lead:
+            lead_dict = json.load(file_lead)
+            for pers in lead_dict['leaders']:
+                self.__lead_dict[pers['name']] = pers['level']
+
+    def set_lead_in_file(self):  # запись в файл
+        with open('leaderboard.json', 'r', encoding="utf-8") as file_lead:
+            lead_dict = json.load(file_lead)
+            while len(lead_dict['leaders']) != len(self.__lead_dict):
+                lead_dict['leaders'].append(dict())
+            for k, v, i_leader in zip(self.__lead_dict.keys(), self.__lead_dict.values(), lead_dict['leaders']):
+                i_leader['name'] = k
+                i_leader['level'] = v
+            with open('leaderboard.json', 'w') as w:
+                json.dump(lead_dict, w, indent=2)
+
+    def get_leader_board(self):
+        return self.__lead_dict
+
+    @staticmethod
+    def get_name():  # получение имени игрока
+        run = True
+        need_input = True
+        base_font = pygame.font.SysFont('comicsans', 50)
+        congrats_font = pygame.font.SysFont('comicsans', 70)
+        name = ''
+
+        while run:
+            WIN.blit(BG, (0, 0))
+            for event in pygame.event.get():
+                if event == pygame.QUIT:
+                    run = False
+                elif event.type == pygame.KEYDOWN and need_input is True:
+                    if event.key == pygame.K_RETURN:
+                        need_input = False
+                        return name
+                    if event.key == pygame.K_BACKSPACE:
+                        name = name[:-1]
+                    else:
+                        name += event.unicode
+            help_text = congrats_font.render('Congrats! Input name:', True, (255, 232, 31))
+            WIN.blit(help_text, (WIDTH / 2 - help_text.get_width() / 2,
+                                 HEIGHT / 2 - help_text.get_height() / 2 - 100))
+            text_surface = base_font.render(name, True, (255, 255, 255))
+            WIN.blit(text_surface, (WIDTH / 2 - text_surface.get_width() / 2,
+                                    HEIGHT / 2 - text_surface.get_height() / 2))
+            pygame.display.update()
+
+    def sort_leaderboard(self):  # сортировка лидерборда по значениям
+        sorted_dict = {}
+        sorted_keys = sorted(self.__lead_dict, key=self.__lead_dict.get, reverse=True)
+        for w in sorted_keys:
+            sorted_dict[w] = self.__lead_dict[w]
+        return sorted_dict
+
+    def print_leaderboard(self):
+        pass
+
+
 def main():
     game = Game()
     run = True
@@ -491,18 +557,18 @@ def main():
     def redraw_window():
         WIN.blit(BG, (0, 0))
         # draw text
-        lives_label = main_font.render(f"Lives: {game.lives}", 1, (255, 255, 255))
-        level_label = main_font.render(f"Level: {game.level}", 1, (255, 255, 255))
+        lives_label = main_font.render(f"Lives: {game.lives}", True, (255, 255, 255))
+        level_label = main_font.render(f"Level: {game.level}", True, (255, 255, 255))
 
         WIN.blit(lives_label, (10, 10))
         WIN.blit(level_label, (WIDTH - level_label.get_width() - 10, 10))
 
-        game.Draw_objects(WIN)
+        game.draw_objects(WIN)
 
         player.draw(WIN)
 
         if lost:
-            lost_label = lost_font.render("You Lost!!", 1, (255, 255, 255))
+            lost_label = lost_font.render("You Lost!!", True, (255, 255, 255))
             WIN.blit(lost_label, (WIDTH / 2 - lost_label.get_width() / 2, 350))
 
         pygame.display.update()
@@ -537,7 +603,7 @@ def main():
         if keys[pygame.K_SPACE]:
             player.shoot()
 
-        game.Loop_actions(player)
+        game.loop_actions(player)
 
         player.move_lasers(-game.lazer_vel, game.CURR_ENEMIES)
 
@@ -550,24 +616,24 @@ def starting_titles():
     pygame.mixer.music.set_volume(0.1)
     pygame.mixer.music.play(-1)
 
-    title_text = title_title_font.render("Star Wars", 1, (255, 232, 31))
-    main_text1 = title_main_font.render("Группа 021704 успешно закончила", 1, (255, 232, 31))
-    main_text2 = title_main_font.render("бой за первый курс.", 1, (255, 232, 31))
-    main_text3 = title_main_font.render("Но перед смелыми повстанцами", 1, (255, 232, 31))
-    main_text4 = title_main_font.render("встала новая угроза: ", 1, (255, 232, 31))
-    main_text5 = title_main_font.render("кафедра ИИТ. В первом ", 1, (255, 232, 31))
-    main_text6 = title_main_font.render("тяжелом и продолжительном ", 1, (255, 232, 31))
-    main_text7 = title_main_font.render("бою они потеряли несколько ", 1, (255, 232, 31))
-    main_text8 = title_main_font.render("сильных бойцов. Позже", 1, (255, 232, 31))
-    main_text9 = title_main_font.render("они были окружены войсками ", 1, (255, 232, 31))
-    main_text10 = title_main_font.render("деканата и лишились еще ", 1, (255, 232, 31))
-    main_text11 = title_main_font.render("половины союзников. Во второй битве ", 1, (255, 232, 31))
-    main_text12 = title_main_font.render("нашим героям предстоит ", 1, (255, 232, 31))
-    main_text13 = title_main_font.render("стокнуться с еще большей", 1, (255, 232, 31))
-    main_text14 = title_main_font.render("силой империи ИИТ.", 1, (255, 232, 31))
-    main_text15 = title_main_font.render("Сможет ли принцесcа Ксю", 1, (255, 232, 31))
-    main_text16 = title_main_font.render("с её немногочисленным войском", 1, (255, 232, 31))
-    main_text17 = title_main_font.render("пройти и это испытание?", 1, (255, 232, 31))
+    title_text = title_title_font.render("Star Wars", True, (255, 232, 31))
+    main_text1 = title_main_font.render("Группа 021704 успешно закончила", True, (255, 232, 31))
+    main_text2 = title_main_font.render("бой за первый курс.", True, (255, 232, 31))
+    main_text3 = title_main_font.render("Но перед смелыми повстанцами", True, (255, 232, 31))
+    main_text4 = title_main_font.render("встала новая угроза: ", True, (255, 232, 31))
+    main_text5 = title_main_font.render("кафедра ИИТ. В первом ", True, (255, 232, 31))
+    main_text6 = title_main_font.render("тяжелом и продолжительном ", True, (255, 232, 31))
+    main_text7 = title_main_font.render("бою они потеряли несколько ", True, (255, 232, 31))
+    main_text8 = title_main_font.render("сильных бойцов. Позже", True, (255, 232, 31))
+    main_text9 = title_main_font.render("они были окружены войсками ", True, (255, 232, 31))
+    main_text10 = title_main_font.render("деканата и лишились еще ", True, (255, 232, 31))
+    main_text11 = title_main_font.render("половины союзников. Во второй битве ", True, (255, 232, 31))
+    main_text12 = title_main_font.render("нашим героям предстоит ", True, (255, 232, 31))
+    main_text13 = title_main_font.render("стокнуться с еще большей", True, (255, 232, 31))
+    main_text14 = title_main_font.render("силой империи ИИТ.", True, (255, 232, 31))
+    main_text15 = title_main_font.render("Сможет ли принцесcа Ксю", True, (255, 232, 31))
+    main_text16 = title_main_font.render("с её немногочисленным войском", True, (255, 232, 31))
+    main_text17 = title_main_font.render("пройти и это испытание?", True, (255, 232, 31))
 
     WIN.blit(title_text, (WIDTH / 2 - title_text.get_width() / 2, 1000))
     WIN.blit(main_text1, (WIDTH / 2 - main_text1.get_width() / 2, 1000 + title_text.get_height() + 20))
@@ -644,6 +710,7 @@ def starting_titles():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
+
 
 def about_page():
     run = True
