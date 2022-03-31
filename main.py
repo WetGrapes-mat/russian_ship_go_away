@@ -105,7 +105,8 @@ ABOUT_IMG = pygame.image.load(os.path.join("assets", "about.png")).convert_alpha
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
     offset_y = obj2.y - obj1.y
-    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) != None
+    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) is None
+
 
 
 class Laser:
@@ -567,7 +568,7 @@ def main():
         player.draw(WIN)
 
         if lost:
-            lost_label = lost_font.render("You Lost!!", 1, (255, 255, 255))
+            lost_label = lost_font.render("You Lost!!", True, (255, 255, 255))
             WIN.blit(lost_label, (WIDTH / 2 - lost_label.get_width() / 2, 350))
 
         pygame.display.update()
@@ -602,7 +603,7 @@ def main():
         if keys[pygame.K_SPACE]:
             player.shoot()
 
-        game.Loop_actions(player)
+        game.loop_actions(player)
 
         player.move_lasers(-game.lazer_vel, game.CURR_ENEMIES)
 
@@ -754,3 +755,6 @@ def main_menu():
 
 
 main_menu()
+
+# print(a._LeaderBoard__lead_dict)
+# a.set_lead_in_file()
