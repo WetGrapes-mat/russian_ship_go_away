@@ -66,7 +66,7 @@ MAIN_MENU_BUTTON_img = pygame.image.load(os.path.join("assets", "menu_button.png
 START_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 200, START_BUTTON_img, 1)
 ABOUT_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 100, ABOUT_BUTTON_img, 1)
 LEADERBOARD_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2, LEADERBOARD_BUTTON_img, 1)
-MAIN_MENU_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 + 400, MAIN_MENU_BUTTON_img, 1)
+MAIN_MENU_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 300, MAIN_MENU_BUTTON_img, 1)
 
 exploasion_list = []
 e1 = pygame.mixer.Sound("sounds/E1.wav")
@@ -745,10 +745,10 @@ def main_menu():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            # if event.type == pygame.MOUSEBUTTONDOWN:
                 # starting_titles()
                 # main()
-                text = LeaderBoard.get_name()
+                # text = LeaderBoard.get_name()
 
         pygame.display.update()
     pygame.quit()
