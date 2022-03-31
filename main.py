@@ -578,16 +578,24 @@ class LeaderBoard:
 
     def __init__(self):
         self.get_lead_from_file()
-
+        # self.__lead_dict['Pit'] = '10'
 
     def get_lead_from_file(self):
         with open('leaderboard.json', 'r', encoding="utf-8") as file_lead:
             lead_dict = json.load(file_lead)
             for pers in lead_dict['leaders']:
-                self.__lead_dict['name'] = pers['level']
+                self.__lead_dict[pers['name']] = pers['level']
 
     def set_lead_in_file(self):
-        pass
+        with open('leaderboard.json', 'r', encoding="utf-8") as file_lead:
+            lead_dict = json.load(file_lead)
+            while len(lead_dict['leaders']) != len(self.__lead_dict):
+                lead_dict['leaders'].append(dict())
+            for k, v, i_leader in zip(self.__lead_dict.keys(), self.__lead_dict.values(), lead_dict['leaders']):
+                i_leader['name'] = k
+                i_leader['level'] = v
+            with open('leaderboard.json', 'w') as w:
+                json.dump(lead_dict, w, indent=2)
 
 
 def main():
@@ -789,3 +797,6 @@ def main_menu():
 
 
 main_menu()
+# a = LeaderBoard()
+# print(a._LeaderBoard__lead_dict)
+# a.set_lead_in_file()

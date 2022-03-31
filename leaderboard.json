@@ -3,6 +3,14 @@
     {
       "name": "Andrey",
       "level": 5
+    },
+    {
+      "name": "Matvey",
+      "level": 5
+    },
+    {
+      "name": "Pit",
+      "level": "10"
     }
   ]
 }
