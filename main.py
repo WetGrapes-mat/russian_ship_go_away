@@ -587,6 +587,7 @@ class LeaderBoard:
                 self.__lead_dict['name'] = pers['level']
 
     def set_lead_in_file(self):
+        pass
 
 
 def main():
