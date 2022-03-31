@@ -66,7 +66,7 @@ MAIN_MENU_BUTTON_img = pygame.image.load(os.path.join("assets", "menu_button.png
 START_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 200, START_BUTTON_img, 1)
 ABOUT_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 100, ABOUT_BUTTON_img, 1)
 LEADERBOARD_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2, LEADERBOARD_BUTTON_img, 1)
-MAIN_MENU_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 300, MAIN_MENU_BUTTON_img, 1)
+MAIN_MENU_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 + HEIGHT * 0.4, MAIN_MENU_BUTTON_img, 1)
 
 exploasion_list = []
 e1 = pygame.mixer.Sound("sounds/E1.wav")
@@ -102,11 +102,10 @@ BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background
 # About png
 ABOUT_IMG = pygame.image.load(os.path.join("assets", "about.png")).convert_alpha()
 
-
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
     offset_y = obj2.y - obj1.y
-    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) is None
+    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) != None
 
 
 class Laser:
@@ -123,10 +122,11 @@ class Laser:
         self.y += vel
 
     def off_screen(self, height):
-        return not (self.y <= height and self.y >= 0)
+        return not (height >= self.y >= 0)
 
     def collision(self, obj):
         return collide(self, obj)
+
 
 class Ship:
     def __init__(self, x, y, health=100):
@@ -385,21 +385,19 @@ class Game:
                         temp_wave.append(Enemy(name))
                 self.ENEMY_MAP[int(k)] = temp_wave
 
-    def Loop_actions(self, player):
-        self.Level_check()
-        self.Random_booster()
-        self.Enemy_behavior(player)
-        self.Boosters_behavior(player)
+    def loop_actions(self, player):
+        self.level_check()
+        self.random_booster()
+        self.enemy_behavior(player)
+        self.boosters_behavior(player)
 
-
-    def Draw_objects(self, window):
+    def draw_objects(self, window):
         for enemy in self.CURR_ENEMIES:
             enemy.draw(window)
         for booster in self.CURR_BOOSTERS:
             booster.draw(WIN)
 
-
-    def Level_check(self):
+    def level_check(self):
         if len(self.CURR_ENEMIES) == 0:
             self.level += 1
             if self.level < 19:
@@ -418,13 +416,13 @@ class Game:
                 for enemy in self.CURR_ENEMIES:
                     enemy.set_starting_position(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100))
 
-    def Random_booster(self):
+    def random_booster(self):
         if random.randrange(0, 6 * 60) == 1:
             booster = Booster(random.randrange(50, WIDTH - 100), random.randrange(100, HEIGHT - 100),
                               random.choice(["hp", "lz", "lv"]))
             self.CURR_BOOSTERS.append(booster)
 
-    def Enemy_behavior(self, player):
+    def enemy_behavior(self, player):
         for enemy in self.CURR_ENEMIES[:]:
             enemy.move()
             enemy.move_lasers(player)
@@ -445,7 +443,7 @@ class Game:
                 self.lives -= 1
                 self.CURR_ENEMIES.remove(enemy)
 
-    def Boosters_behavior(self, player):
+    def boosters_behavior(self, player):
         for booster in self.CURR_BOOSTERS:
             if collide(booster, player):
                 if booster.type == "hp":
@@ -564,7 +562,7 @@ def main():
         WIN.blit(lives_label, (10, 10))
         WIN.blit(level_label, (WIDTH - level_label.get_width() - 10, 10))
 
-        game.Draw_objects(WIN)
+        game.draw_objects(WIN)
 
         player.draw(WIN)
 
@@ -712,6 +710,7 @@ def starting_titles():
             if event.type == pygame.QUIT:
                 pygame.quit()
 
+
 def about_page():
     run = True
     while run:
@@ -755,6 +754,3 @@ def main_menu():
 
 
 main_menu()
-
-# print(a._LeaderBoard__lead_dict)
-# a.set_lead_in_file()
