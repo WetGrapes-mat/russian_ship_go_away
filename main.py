@@ -2,6 +2,7 @@ import pygame
 import os
 import time
 import random
+import json
 
 import button
 
@@ -25,6 +26,8 @@ BIG_SHIP_S = pygame.image.load(os.path.join("assets", "pixel_boss_ship_small.png
 BIG_SHIP_M = pygame.image.load(os.path.join("assets", "pixel_boss_ship_middle.png"))
 BIG_SHIP_L = pygame.image.load(os.path.join("assets", "pixel_boss_ship_big.png"))
 
+
+
 # Player player
 YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("assets", "pixel_ship_yellow.png"))
 
@@ -34,6 +37,20 @@ GREEN_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_green.png"))
 BLUE_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_blue.png"))
 YELLOW_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_yellow.png"))
 
+images_dict = {"RED_SPACE_SHIP_S":RED_SPACE_SHIP_S,
+"GREEN_SPACE_SHIP_S":GREEN_SPACE_SHIP_S,
+"BLUE_SPACE_SHIP_S":BLUE_SPACE_SHIP_S,
+"RED_SPACE_SHIP_L":RED_SPACE_SHIP_L,
+"GREEN_SPACE_SHIP_L":GREEN_SPACE_SHIP_L,
+"BLUE_SPACE_SHIP_M":BLUE_SPACE_SHIP_M,
+"BLUE_SPACE_SHIP_L":BLUE_SPACE_SHIP_L,
+"BIG_SHIP_S":BIG_SHIP_S,
+"BIG_SHIP_M":BIG_SHIP_M,
+"BIG_SHIP_L":BIG_SHIP_L,
+"RED_LASER":RED_LASER,
+"BLUE_LASER":BLUE_LASER,
+"GREEN_LASER":GREEN_LASER
+               }
 # Boosters
 HEART_BOOSTER = pygame.image.load(os.path.join("assets", "pixel_heart.png"))
 LAZER_BOOSTER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_rocket.png")),
@@ -183,21 +200,24 @@ class Player(Ship):
 
 
 class Enemy(Ship):
-    COLOR_MAP = {
-        "red_s": (RED_SPACE_SHIP_S, RED_LASER, 1, 30, 4, 2),
-        "green_s": (GREEN_SPACE_SHIP_S, GREEN_LASER, 1, 30, 3, 1),
-        "blue_s": (BLUE_SPACE_SHIP_S, BLUE_LASER, 1, 60, 2, 2),
-        "red_b": (RED_SPACE_SHIP_L, RED_LASER, 2, 30, 4, 1),
-        "green_b": (GREEN_SPACE_SHIP_L, GREEN_LASER, 2, 30, 3, 1),
-        "blue_m": (BLUE_SPACE_SHIP_M, BLUE_LASER, 1, 50, 2, 2),
-        "blue_b": (BLUE_SPACE_SHIP_L, BLUE_LASER, 1, 40, 2, 2),
-        "boss_s": (BIG_SHIP_S, RED_LASER, 5, 20, 1, 1),
-        "boss_m": (BIG_SHIP_M, RED_LASER, 10, 20, 1, 1),
-        "boss_l": (BIG_SHIP_L, RED_LASER, 15, 20, 1, 1)
-    }
+    COLOR_MAP = {}
+
+    def load_config(self):
+        with open('config_list.json', 'r', encoding="utf-8") as file_config:
+            config_list = json.load(file_config)
+            for k, v in config_list["config"].items():
+                self.COLOR_MAP[k] = (
+                    images_dict[v["ship_img"]],
+                    images_dict[v["laser_img"]],
+                    v["hp"],
+                    v["CD"],
+                    v["chance"],
+                    v["velocity"]
+                )
 
     def __init__(self, color, health=100):
         super().__init__(0, 0, health)
+        self.load_config()
         self.color = color
         self.lazer_vel = 5
         self.ship_img, self.laser_img, self.hp, self.CD, self.chance, self.velocity = self.COLOR_MAP[color]

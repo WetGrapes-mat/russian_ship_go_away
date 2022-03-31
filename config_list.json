@@ -1,0 +1,84 @@
+{
+  "config": {
+    "red_s": {
+      "ship_img": "RED_SPACE_SHIP_S",
+      "laser_img": "RED_LASER",
+      "hp": 1,
+      "CD": 30,
+      "chance": 4,
+      "velocity": 2
+    },
+    "green_s": {
+      "ship_img": "GREEN_SPACE_SHIP_S",
+      "laser_img": "GREEN_LASER",
+      "hp": 1,
+      "CD": 30,
+      "chance": 3,
+      "velocity": 1
+    },
+    "blue_s": {
+      "ship_img": "BLUE_SPACE_SHIP_S",
+      "laser_img": "BLUE_LASER",
+      "hp": 1,
+      "CD": 60,
+      "chance": 2,
+      "velocity": 2
+    },
+    "red_b": {
+      "ship_img": "RED_SPACE_SHIP_L",
+      "laser_img": "RED_LASER",
+      "hp": 2,
+      "CD": 30,
+      "chance": 4,
+      "velocity": 1
+    },
+    "green_b": {
+      "ship_img": "GREEN_SPACE_SHIP_L",
+      "laser_img": "GREEN_LASER",
+      "hp": 2,
+      "CD": 30,
+      "chance": 3,
+      "velocity": 1
+    },
+    "blue_m": {
+      "ship_img": "BLUE_SPACE_SHIP_M",
+      "laser_img": "BLUE_LASER",
+      "hp": 1,
+      "CD": 50,
+      "chance": 2,
+      "velocity": 2
+    },
+    "blue_b": {
+      "ship_img": "BLUE_SPACE_SHIP_L",
+      "laser_img": "BLUE_LASER",
+      "hp": 1,
+      "CD": 40,
+      "chance": 2,
+      "velocity": 2
+    },
+    "boss_s": {
+      "ship_img": "BIG_SHIP_S",
+      "laser_img": "RED_LASER",
+      "hp": 5,
+      "CD": 20,
+      "chance": 1,
+      "velocity": 1
+    },
+    "boss_m": {
+      "ship_img": "BIG_SHIP_M",
+      "laser_img": "RED_LASER",
+      "hp": 10,
+      "CD": 20,
+      "chance": 1,
+      "velocity": 1
+    },
+    "boss_l": {
+      "ship_img": "BIG_SHIP_L",
+      "laser_img": "RED_LASER",
+      "hp": 15,
+      "CD": 20,
+      "chance": 1,
+      "velocity": 1
+    }
+  }
+}
