@@ -60,13 +60,13 @@ HEALTH_BOOSTER = pygame.transform.scale(pygame.image.load(os.path.join("assets",
 START_BUTTON_img = pygame.image.load(os.path.join("assets", "start_menu.png")).convert_alpha()
 ABOUT_BUTTON_img = pygame.image.load(os.path.join("assets", "about_menu.png")).convert_alpha()
 LEADERBOARD_BUTTON_img = pygame.image.load(os.path.join("assets", "leaderboard_menu.png")).convert_alpha()
-MAIN_MENU_BUTTON_img = pygame.image.load(os.path.join("assets", "start_menu.png")).convert_alpha()
+MAIN_MENU_BUTTON_img = pygame.image.load(os.path.join("assets", "menu_button.png")).convert_alpha()
 
 # create button instances
 START_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 200, START_BUTTON_img, 1)
 ABOUT_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 100, ABOUT_BUTTON_img, 1)
 LEADERBOARD_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2, LEADERBOARD_BUTTON_img, 1)
-MAIN_MENU_BUTTON = button.Button(100, 200, MAIN_MENU_BUTTON_img, 1)
+MAIN_MENU_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 + 400, MAIN_MENU_BUTTON_img, 1)
 
 exploasion_list = []
 e1 = pygame.mixer.Sound("sounds/E1.wav")
@@ -99,6 +99,8 @@ appear_s.set_volume(0.1)
 # Background
 BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background-black.png")), (WIDTH, HEIGHT))
 
+# About png
+ABOUT_IMG = pygame.image.load(os.path.join("assets", "about.png")).convert_alpha()
 
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
@@ -642,6 +644,21 @@ def starting_titles():
             if event.type == pygame.QUIT:
                 pygame.quit()
 
+def about_page():
+    run = True
+    while run:
+        WIN.blit(BG, (0, 0))
+        WIN.blit(ABOUT_IMG, (WIDTH/2 - ABOUT_IMG.get_width() / 2, HEIGHT / 2 - ABOUT_IMG.get_height() / 2))
+
+        if MAIN_MENU_BUTTON.draw(WIN):
+            run = False
+
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
+
 
 def main_menu():
     title_font = pygame.font.SysFont("comicsans", 70)
@@ -652,17 +669,17 @@ def main_menu():
             starting_titles()
             main()
         if ABOUT_BUTTON.draw(WIN):
-            print('EXIT')
+            about_page()
         if LEADERBOARD_BUTTON.draw(WIN):
-            print('EXIT')
+            pass
         pygame.display.update()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                # starting_titles()
-                main()
+            #if event.type == pygame.MOUSEBUTTONDOWN:
+            #    # starting_titles()
+            #    main()
     pygame.quit()
 
 
