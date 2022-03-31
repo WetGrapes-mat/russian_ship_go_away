@@ -10,7 +10,7 @@ pygame.font.init()
 pygame.mixer.pre_init(44100, -16, 1, 512)
 pygame.init()
 
-WIDTH, HEIGHT = 1000, 700
+WIDTH, HEIGHT = 1000, 1000
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Space Invaders")
 
@@ -35,6 +35,20 @@ GREEN_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_green.png"))
 BLUE_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_blue.png"))
 YELLOW_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_yellow.png"))
 
+images_dict = {"RED_SPACE_SHIP_S": RED_SPACE_SHIP_S,
+               "GREEN_SPACE_SHIP_S": GREEN_SPACE_SHIP_S,
+               "BLUE_SPACE_SHIP_S": BLUE_SPACE_SHIP_S,
+               "RED_SPACE_SHIP_L": RED_SPACE_SHIP_L,
+               "GREEN_SPACE_SHIP_L": GREEN_SPACE_SHIP_L,
+               "BLUE_SPACE_SHIP_M": BLUE_SPACE_SHIP_M,
+               "BLUE_SPACE_SHIP_L": BLUE_SPACE_SHIP_L,
+               "BIG_SHIP_S": BIG_SHIP_S,
+               "BIG_SHIP_M": BIG_SHIP_M,
+               "BIG_SHIP_L": BIG_SHIP_L,
+               "RED_LASER": RED_LASER,
+               "BLUE_LASER": BLUE_LASER,
+               "GREEN_LASER": GREEN_LASER
+               }
 # Boosters
 HEART_BOOSTER = pygame.image.load(os.path.join("assets", "pixel_heart.png"))
 LAZER_BOOSTER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_rocket.png")),
@@ -89,7 +103,8 @@ BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
     offset_y = obj2.y - obj1.y
-    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) is None
+    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) != None
+
 
 
 class Laser:
@@ -113,8 +128,6 @@ class Laser:
 
 
 class Ship:
-    COOLDOWN = 30
-
     def __init__(self, x, y, health=100):
         self.x = x
         self.y = y
@@ -140,7 +153,6 @@ class Player(Ship):
     COOLDOWN = 30
 
     def __init__(self, x, y, health=100):
-
         super().__init__(x, y, health)
         self.ship_img = YELLOW_SPACE_SHIP
         self.laser_img = YELLOW_LASER
@@ -190,26 +202,29 @@ class Player(Ship):
 
 
 class Enemy(Ship):
-    COLOR_MAP = {
-        "red_s": (RED_SPACE_SHIP_S, RED_LASER, 1, 30, 4, 2),
-        "green_s": (GREEN_SPACE_SHIP_S, GREEN_LASER, 1, 30, 3, 1),
-        "blue_s": (BLUE_SPACE_SHIP_S, BLUE_LASER, 1, 60, 2, 2),
-        "red_b": (RED_SPACE_SHIP_L, RED_LASER, 2, 30, 4, 1),
-        "green_b": (GREEN_SPACE_SHIP_L, GREEN_LASER, 2, 30, 3, 1),
-        "blue_m": (BLUE_SPACE_SHIP_M, BLUE_LASER, 1, 50, 2, 2),
-        "blue_b": (BLUE_SPACE_SHIP_L, BLUE_LASER, 1, 40, 2, 2),
-        "boss_s": (BIG_SHIP_S, RED_LASER, 5, 20, 1, 1),
-        "boss_m": (BIG_SHIP_M, RED_LASER, 10, 20, 1, 1),
-        "boss_l": (BIG_SHIP_L, RED_LASER, 15, 20, 1, 1)
-    }
+    COLOR_MAP = {}
 
     def __init__(self, color, health=100):
         super().__init__(0, 0, health)
+        self.load_config()
         self.color = color
         self.lazer_vel = 5
         self.ship_img, self.laser_img, self.hp, self.CD, self.chance, self.velocity = self.COLOR_MAP[color]
         self.mask = pygame.mask.from_surface(self.ship_img)
         self.set_starting_position(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100))
+
+    def load_config(self):
+        with open('config_list.json', 'r', encoding="utf-8") as file_config:
+            config_list = json.load(file_config)
+            for k, v in config_list["config"].items():
+                self.COLOR_MAP[k] = (
+                    images_dict[v["ship_img"]],
+                    images_dict[v["laser_img"]],
+                    v["hp"],
+                    v["CD"],
+                    v["chance"],
+                    v["velocity"]
+                )
 
     def move(self):
         self.y += self.velocity
@@ -345,143 +360,43 @@ class Booster:
 
 
 class Game:
+    ENEMY_MAP = {}
 
     def __init__(self):
+        self.load_wave()
         self.FPS = 60
         self.boss_colider = 0
         self.level = 0
         self.lives = 5
-        self.ENEMY_MAP = {1: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s")],
-                          2: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s")],
-                          3: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"), Enemy("red_s")],
-                          4: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s")],
-                          5: [Boss("boss_s")],
-                          6: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_b"), Enemy("green_b"), Enemy("blue_m")],
-                          7: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                              Enemy("red_b"), Enemy("green_b"), Enemy("blue_m")],
-                          8: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                              Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                              Enemy("red_b"), Enemy("green_b"), Enemy("blue_m")],
-                          9: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                              Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                              Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                              Enemy("red_b"), Enemy("green_b"), Enemy("blue_m")],
-                          10: [Boss("boss_m")],
-                          11: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"), Enemy("blue_b")],
-                          12: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("blue_b"), Enemy("blue_b"), Enemy("red_b")],
-                          13: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("blue_b"), Enemy("blue_b"), Enemy("blue_b"), Enemy("red_b"), Enemy("green_b")],
-                          14: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("blue_b"), Enemy("blue_b"), Enemy("blue_b"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_b"), Enemy("blue_m")],
-                          15: [Boss("boss_l")],
-                          16: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("blue_b"), Enemy("blue_b"), Enemy("blue_b"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_b"),
-                               Enemy("blue_b"), Enemy("blue_b"), Enemy("red_b"),
-                               Enemy("green_b"), Enemy("blue_m")],
-                          17: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("blue_b"), Enemy("blue_b"), Enemy("blue_b"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_b"),
-                               Enemy("blue_b"), Enemy("blue_b"), Enemy("red_b"),
-                               Enemy("green_b"), Enemy("blue_m"), Enemy("blue_b")],
-                          18: [Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_s"), Enemy("green_s"), Enemy("blue_s"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_m"),
-                               Enemy("blue_b"), Enemy("blue_b"), Enemy("blue_b"),
-                               Enemy("red_b"), Enemy("green_b"), Enemy("blue_b"),
-                               Enemy("blue_b"), Enemy("blue_b"), Enemy("red_b"),
-                               Enemy("green_b"), Enemy("blue_m"), Enemy("blue_b"), Enemy("blue_b")]}
         self.CURR_ENEMIES = []
         self.CURR_BOOSTERS = []
         self.booster_effect = 0
         self.player_vel = 5
         self.lazer_vel = 5
 
-    def loop_actions(self, player):
-        self.level_check()
-        self.random_booster()
-        self.enemy_behavior(player)
-        self.boosters_behavior(player)
+    def load_wave(self):
+        with open('wave_list.json', 'r', encoding="utf-8") as file_config:
+            wave_list = json.load(file_config)
+            for k, v in wave_list["wave"].items():
+                temp_wave = []
+                for name, many in v.items():
+                    for i in range(int(many)):
+                        temp_wave.append(Enemy(name))
+                self.ENEMY_MAP[int(k)] = temp_wave
 
-    def draw_objects(self, window):
+    def Loop_actions(self, player):
+        self.Level_check()
+        self.Random_booster()
+        self.Enemy_behavior(player)
+        self.Boosters_behavior(player)
+
+    def Draw_objects(self, window):
         for enemy in self.CURR_ENEMIES:
             enemy.draw(window)
         for booster in self.CURR_BOOSTERS:
             booster.draw(WIN)
 
-    def level_check(self):
+    def Level_check(self):
         if len(self.CURR_ENEMIES) == 0:
             self.level += 1
             if self.level < 19:
@@ -500,13 +415,13 @@ class Game:
                 for enemy in self.CURR_ENEMIES:
                     enemy.set_starting_position(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100))
 
-    def random_booster(self):
+    def Random_booster(self):
         if random.randrange(0, 6 * 60) == 1:
             booster = Booster(random.randrange(50, WIDTH - 100), random.randrange(100, HEIGHT - 100),
                               random.choice(["hp", "lz", "lv"]))
             self.CURR_BOOSTERS.append(booster)
 
-    def enemy_behavior(self, player):
+    def Enemy_behavior(self, player):
         for enemy in self.CURR_ENEMIES[:]:
             enemy.move()
             enemy.move_lasers(player)
@@ -527,7 +442,7 @@ class Game:
                 self.lives -= 1
                 self.CURR_ENEMIES.remove(enemy)
 
-    def boosters_behavior(self, player):
+    def Boosters_behavior(self, player):
         for booster in self.CURR_BOOSTERS:
             if collide(booster, player):
                 if booster.type == "hp":
@@ -646,7 +561,7 @@ def main():
         WIN.blit(lives_label, (10, 10))
         WIN.blit(level_label, (WIDTH - level_label.get_width() - 10, 10))
 
-        game.draw_objects(WIN)
+        game.Draw_objects(WIN)
 
         player.draw(WIN)
 
@@ -686,7 +601,7 @@ def main():
         if keys[pygame.K_SPACE]:
             player.shoot()
 
-        game.loop_actions(player)
+        game.Loop_actions(player)
 
         player.move_lasers(-game.lazer_vel, game.CURR_ENEMIES)
 
@@ -822,6 +737,3 @@ def main_menu():
 
 
 main_menu()
-
-# print(a._LeaderBoard__lead_dict)
-# a.set_lead_in_file()
