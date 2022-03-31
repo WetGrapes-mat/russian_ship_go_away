@@ -26,8 +26,6 @@ BIG_SHIP_S = pygame.image.load(os.path.join("assets", "pixel_boss_ship_small.png
 BIG_SHIP_M = pygame.image.load(os.path.join("assets", "pixel_boss_ship_middle.png"))
 BIG_SHIP_L = pygame.image.load(os.path.join("assets", "pixel_boss_ship_big.png"))
 
-
-
 # Player player
 YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("assets", "pixel_ship_yellow.png"))
 
@@ -37,19 +35,19 @@ GREEN_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_green.png"))
 BLUE_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_blue.png"))
 YELLOW_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_yellow.png"))
 
-images_dict = {"RED_SPACE_SHIP_S":RED_SPACE_SHIP_S,
-"GREEN_SPACE_SHIP_S":GREEN_SPACE_SHIP_S,
-"BLUE_SPACE_SHIP_S":BLUE_SPACE_SHIP_S,
-"RED_SPACE_SHIP_L":RED_SPACE_SHIP_L,
-"GREEN_SPACE_SHIP_L":GREEN_SPACE_SHIP_L,
-"BLUE_SPACE_SHIP_M":BLUE_SPACE_SHIP_M,
-"BLUE_SPACE_SHIP_L":BLUE_SPACE_SHIP_L,
-"BIG_SHIP_S":BIG_SHIP_S,
-"BIG_SHIP_M":BIG_SHIP_M,
-"BIG_SHIP_L":BIG_SHIP_L,
-"RED_LASER":RED_LASER,
-"BLUE_LASER":BLUE_LASER,
-"GREEN_LASER":GREEN_LASER
+images_dict = {"RED_SPACE_SHIP_S": RED_SPACE_SHIP_S,
+               "GREEN_SPACE_SHIP_S": GREEN_SPACE_SHIP_S,
+               "BLUE_SPACE_SHIP_S": BLUE_SPACE_SHIP_S,
+               "RED_SPACE_SHIP_L": RED_SPACE_SHIP_L,
+               "GREEN_SPACE_SHIP_L": GREEN_SPACE_SHIP_L,
+               "BLUE_SPACE_SHIP_M": BLUE_SPACE_SHIP_M,
+               "BLUE_SPACE_SHIP_L": BLUE_SPACE_SHIP_L,
+               "BIG_SHIP_S": BIG_SHIP_S,
+               "BIG_SHIP_M": BIG_SHIP_M,
+               "BIG_SHIP_L": BIG_SHIP_L,
+               "RED_LASER": RED_LASER,
+               "BLUE_LASER": BLUE_LASER,
+               "GREEN_LASER": GREEN_LASER
                }
 # Boosters
 HEART_BOOSTER = pygame.image.load(os.path.join("assets", "pixel_heart.png"))
@@ -101,10 +99,12 @@ appear_s.set_volume(0.1)
 # Background
 BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background-black.png")), (WIDTH, HEIGHT))
 
+
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
     offset_y = obj2.y - obj1.y
     return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) != None
+
 
 class Laser:
     def __init__(self, x, y, img):
@@ -124,6 +124,7 @@ class Laser:
 
     def collision(self, obj):
         return collide(self, obj)
+
 
 class Ship:
     def __init__(self, x, y, health=100):
@@ -202,8 +203,6 @@ class Player(Ship):
 class Enemy(Ship):
     COLOR_MAP = {}
 
-
-
     def __init__(self, color, health=100):
         super().__init__(0, 0, health)
         self.load_config()
@@ -270,7 +269,7 @@ class Boss(Enemy):
     }
     first_line = 200
     counter = -200
-    
+
     def __init__(self, color):
         super().__init__(color)
         self.lazer_vel = 8
@@ -281,7 +280,7 @@ class Boss(Enemy):
 
     def move(self):
         if self.y < HEIGHT / 2 - self.ship_img.get_height() / 2:
-            self.y += self.velocity*2
+            self.y += self.velocity * 2
         else:
             if self.first_line > 0:
                 self.x -= self.velocity
@@ -360,7 +359,6 @@ class Booster:
 
 
 class Game:
-
     ENEMY_MAP = {}
 
     def __init__(self):
@@ -391,13 +389,11 @@ class Game:
         self.Enemy_behavior(player)
         self.Boosters_behavior(player)
 
-
     def Draw_objects(self, window):
         for enemy in self.CURR_ENEMIES:
             enemy.draw(window)
         for booster in self.CURR_BOOSTERS:
             booster.draw(WIN)
-
 
     def Level_check(self):
         if len(self.CURR_ENEMIES) == 0:
@@ -406,7 +402,7 @@ class Game:
                 self.CURR_ENEMIES = self.ENEMY_MAP[self.level]
             else:
                 self.CURR_ENEMIES = self.ENEMY_MAP[18]
-                for i in range(self.level-18+1):
+                for i in range(self.level - 18 + 1):
                     self.CURR_ENEMIES.append(Enemy("red_s"))
                     self.CURR_ENEMIES.append(Enemy("blue_s"))
                     self.CURR_ENEMIES.append(Enemy("green_s"))
@@ -665,7 +661,7 @@ def main_menu():
             if event.type == pygame.QUIT:
                 run = False
             if event.type == pygame.MOUSEBUTTONDOWN:
-                #starting_titles()
+                # starting_titles()
                 main()
     pygame.quit()
 
