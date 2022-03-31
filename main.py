@@ -55,6 +55,8 @@ LAZER_BOOSTER = pygame.transform.scale(pygame.image.load(os.path.join("assets", 
                                        (WIDTH * 0.05, HEIGHT * 0.05))
 HEALTH_BOOSTER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_health.png")),
                                         (60, 40))
+# About png
+ABOUT_IMG = pygame.image.load(os.path.join("assets", "about.png")).convert_alpha()
 
 # Buttons img-s
 START_BUTTON_img = pygame.image.load(os.path.join("assets", "start_menu.png")).convert_alpha()
@@ -66,7 +68,8 @@ MAIN_MENU_BUTTON_img = pygame.image.load(os.path.join("assets", "menu_button.png
 START_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 200, START_BUTTON_img, 1)
 ABOUT_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - 100, ABOUT_BUTTON_img, 1)
 LEADERBOARD_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2, LEADERBOARD_BUTTON_img, 1)
-MAIN_MENU_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 + 400, MAIN_MENU_BUTTON_img, 1)
+MAIN_MENU_BUTTON = button.Button(WIDTH / 2 - 200 / 2, HEIGHT / 2 - ABOUT_IMG.get_height() / 2 + ABOUT_IMG.get_height()
+                                 + 10, MAIN_MENU_BUTTON_img, 1)
 
 exploasion_list = []
 e1 = pygame.mixer.Sound("sounds/E1.wav")
@@ -99,8 +102,6 @@ appear_s.set_volume(0.1)
 # Background
 BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background-black.png")), (WIDTH, HEIGHT))
 
-# About png
-ABOUT_IMG = pygame.image.load(os.path.join("assets", "about.png")).convert_alpha()
 
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
