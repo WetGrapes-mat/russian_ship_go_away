@@ -2,6 +2,7 @@ import pygame
 import os
 import time
 import random
+import json
 
 import button
 
@@ -135,32 +136,31 @@ class Ship:
 class Player(Ship):
     COOLDOWN = 30
 
-    def __init__(self, x, y, name, health=100):
+    def __init__(self, x, y, health=100):
 
         super().__init__(x, y, health)
         self.ship_img = YELLOW_SPACE_SHIP
         self.laser_img = YELLOW_LASER
         self.mask = pygame.mask.from_surface(self.ship_img)
         self.max_health = health
-        self.name = name
-
-    def input_name(self, window):
-        text = ''
-        input_font = pygame.font.SysFont('arial', 30)
-        input_text = input_font.render(text, True, (255, 255, 255))
-        press_font = pygame.font.SysFont('arial', 50)
-        press_text = press_font.render('Нажмите любую клавишу...', True, (255, 255, 255))
-
-        window.blit(press_text, (WIDTH / 2 - press_text.get_width() / 2, HEIGHT / 2 - press_text.get_height() / 2))
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    self.name = text
-                elif event.key == pygame.K_BACKSPACE:
-                    pass
-                else:
-                    text += event.unicode
-            window.blit(input_text, ((WIDTH / 2 - input_text.get_width() / 2, HEIGHT / 2 - press_text.get_height() / 2)))
+    #
+    # def input_name(self, window):
+    #     text = ''
+    #     input_font = pygame.font.SysFont('arial', 30)
+    #     input_text = input_font.render(text, True, (255, 255, 255))
+    #     press_font = pygame.font.SysFont('arial', 50)
+    #     press_text = press_font.render('Нажмите любую клавишу...', True, (255, 255, 255))
+    #
+    #     window.blit(press_text, (WIDTH / 2 - press_text.get_width() / 2, HEIGHT / 2 - press_text.get_height() / 2))
+    #     for event in pygame.event.get():
+    #         if event.type == pygame.KEYDOWN:
+    #             if event.key == pygame.K_RETURN:
+    #                 self.name = text
+    #             elif event.key == pygame.K_BACKSPACE:
+    #                 pass
+    #             else:
+    #                 text += event.unicode
+    #         window.blit(input_text, ((WIDTH / 2 - input_text.get_width() / 2, HEIGHT / 2 - press_text.get_height() / 2)))
 
 
 
@@ -571,6 +571,22 @@ class Game:
 
         if self.boss_colider > 0:
             self.boss_colider -= 1
+
+
+class LeaderBoard:
+    __lead_dict = {}
+
+    def __init__(self):
+        self.get_lead_from_file()
+
+
+    def get_lead_from_file(self):
+        with open('leaderboard.json', 'r', encoding="utf-8") as file_lead:
+            lead_dict = json.load(file_lead)
+            for pers in lead_dict['leaders']:
+                self.__lead_dict['name'] = pers['level']
+
+    def set_lead_in_file(self):
 
 
 def main():
