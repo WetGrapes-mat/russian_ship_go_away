@@ -383,7 +383,10 @@ class Game:
                 temp_wave = []
                 for name, many in v.items():
                     for i in range(int(many)):
-                        temp_wave.append(Enemy(name))
+                        if name[0:4] == 'boss':
+                            temp_wave.append(Boss(name))
+                        else:
+                            temp_wave.append(Enemy(name))
                 self.ENEMY_MAP[int(k)] = temp_wave
 
     def loop_actions(self, player):
@@ -801,3 +804,4 @@ def main_menu():
 
 
 main_menu()
+
