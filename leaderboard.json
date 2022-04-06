@@ -2,15 +2,47 @@
   "leaders": [
     {
       "name": "Andrey",
-      "level": 5
+      "level": 1
     },
     {
       "name": "Matvey",
-      "level": 5
+      "level": 3
     },
     {
       "name": "Pit",
-      "level": "10"
+      "level": 1
+    },
+    {
+      "name": "Vovan",
+      "level": 2
+    },
+    {
+      "name": "mamkin_bandit666",
+      "level": 1
+    },
+    {
+      "name": "Nikita",
+      "level": 3
+    },
+    {
+      "name": "boss",
+      "level": 2
+    },
+    {
+      "name": "killer",
+      "level": 2
+    },
+    {
+      "name": "Valera",
+      "level": 1
+    },
+    {
+      "name": "logan_hend",
+      "level": 3
+    },
+    {
+      "name": " polina",
+      "level": 3
     }
   ]
 }

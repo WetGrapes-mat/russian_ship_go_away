@@ -494,11 +494,47 @@ class LeaderBoard:
             with open('leaderboard.json', 'w') as w:
                 json.dump(lead_dict, w, indent=2)
 
+    def sort_leaderboard(self):  # сортировка лидерборда по значениям
+        sorted_dict = {}
+        sorted_keys = sorted(self.__lead_dict, key=self.__lead_dict.get, reverse=True)
+        for w in sorted_keys:
+            sorted_dict[w] = self.__lead_dict[w]
+        self.__lead_dict = sorted_dict
+
     def get_leader_board(self):
         return self.__lead_dict
 
-    @staticmethod
-    def get_name():  # получение имени игрока
+    def print_leaderboard(self):
+        run = True
+        base_font = pygame.font.SysFont('comicsans', 30)
+        title_font = pygame.font.SysFont('comicsans', 70)
+        need_output = True
+        counter = 0
+        temp = HEIGHT / 10
+        while run:
+            WIN.blit(BG, (0, 0))
+            surf = title_font.render('LEADERBOARD', True, (255, 232, 31))
+            WIN.blit(surf, (WIDTH / 2 - surf.get_width() / 2, HEIGHT / 45))
+            if MAIN_MENU_BUTTON.draw(WIN):
+                run = False
+            if need_output:
+                for k, v in self.__lead_dict.items():
+                    temp += 40
+                    counter += 1
+                    if counter > 10:
+                        break
+                    t = base_font.render(f'{counter}. {k} - {v}', True, (255, 255, 255))
+                    WIN.blit(t, (WIDTH / 2 - t.get_width() / 2, temp))
+                    pygame.display.update()
+                    need_output = False
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                    pygame.quit()
+
+
+    def get_name(self):  # получение имени игрока
         run = True
         need_input = True
         base_font = pygame.font.SysFont('comicsans', 50)
@@ -508,7 +544,7 @@ class LeaderBoard:
         while run:
             WIN.blit(BG, (0, 0))
             for event in pygame.event.get():
-                if event == pygame.QUIT:
+                if event.type == pygame.QUIT:
                     run = False
                 elif event.type == pygame.KEYDOWN and need_input is True:
                     if event.key == pygame.K_RETURN:
@@ -526,15 +562,11 @@ class LeaderBoard:
                                     HEIGHT / 2 - text_surface.get_height() / 2))
             pygame.display.update()
 
-    def sort_leaderboard(self):  # сортировка лидерборда по значениям
-        sorted_dict = {}
-        sorted_keys = sorted(self.__lead_dict, key=self.__lead_dict.get, reverse=True)
-        for w in sorted_keys:
-            sorted_dict[w] = self.__lead_dict[w]
-        return sorted_dict
+        pygame.quit()
+        return name
 
-    def print_leaderboard(self):
-        pass
+    def add(self, name, level):
+        self.__lead_dict[name] = level
 
 
 def main():
@@ -566,12 +598,22 @@ def main():
         game.draw_objects(WIN)
 
         player.draw(WIN)
-
+        l = LeaderBoard()
+        l.get_lead_from_file()
+        l.sort_leaderboard()
         if lost:
             lost_label = lost_font.render("You Lost!!", True, (255, 255, 255))
             WIN.blit(lost_label, (WIDTH / 2 - lost_label.get_width() / 2, 350))
 
         pygame.display.update()
+        counter = 1
+
+        if lost and game.level > list(l.get_leader_board().values())[0]:
+            name = l.get_name()
+            l.add(name, game.level)
+            l.set_lead_in_file()
+            l.sort_leaderboard()
+            l.print_leaderboard()
 
     while run:
         clock.tick(game.FPS)
@@ -734,21 +776,25 @@ def main_menu():
     while run:
         WIN.blit(BG, (0, 0))
         if START_BUTTON.draw(WIN):
-            starting_titles()
+            # starting_titles()
             main()
         if ABOUT_BUTTON.draw(WIN):
             about_page()
         if LEADERBOARD_BUTTON.draw(WIN):
-            pass
+            a = LeaderBoard()
+            a.get_lead_from_file()
+            a.sort_leaderboard()
+            a.print_leaderboard()
         pygame.display.update()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            # if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 # starting_titles()
                 # main()
-                # text = LeaderBoard.get_name()
+                pass
+
 
         pygame.display.update()
     pygame.quit()
